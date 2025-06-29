@@ -1,7 +1,7 @@
 'use client';
 
 import { AppContext } from "@/context/AppContext";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -19,22 +19,30 @@ const specialities = [
   "Gastroenterologist",
 ];
 
-export default function Doctors() {
+export default function DoctorsPageWrapper() {
+  return (
+    <Suspense fallback={<div>Loading doctors...</div>}>
+      <Doctors />
+    </Suspense>
+  );
+}
+
+function Doctors() {
   const { doctors } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState("");
-
   const [filterDoc, setFilterDoc] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-const searchParams = useSearchParams();
-const specialityParam = searchParams.get("speciality");
 
-const initialSpeciality =
-  specialityParam && specialities.includes(specialityParam)
-    ? specialityParam
-    : "All";
+  // ✅ moved this inside <Suspense>
+  const searchParams = useSearchParams();
+  const specialityParam = searchParams.get("speciality");
 
-const [selected, setSelected] = useState(initialSpeciality);
+  const initialSpeciality =
+    specialityParam && specialities.includes(specialityParam)
+      ? specialityParam
+      : "All";
 
+  const [selected, setSelected] = useState(initialSpeciality);
 
   useEffect(() => {
     if (initialSpeciality && specialities.includes(initialSpeciality)) {
@@ -62,7 +70,6 @@ const [selected, setSelected] = useState(initialSpeciality);
     <div className="max-w-7xl mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-4">Find Your Doctor</h1>
 
-      {/* 🔍 Search bar + filter toggle for mobile */}
       <div className="flex justify-between items-center mb-4 gap-3">
         <input
           type="text"
@@ -80,7 +87,6 @@ const [selected, setSelected] = useState(initialSpeciality);
       </div>
 
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* 🧭 Desktop sidebar */}
         <aside className="hidden lg:block lg:w-1/4 space-y-6">
           <SidebarFilter
             selected={selected}
@@ -89,7 +95,6 @@ const [selected, setSelected] = useState(initialSpeciality);
           />
         </aside>
 
-        {/* 🧑‍⚕️ Doctor list */}
         <main className="w-full lg:w-3/4">
           {filterDoc.length === 0 ? (
             <p className="text-center text-gray-500 mt-8">No doctors found.</p>
@@ -127,7 +132,6 @@ const [selected, setSelected] = useState(initialSpeciality);
         </main>
       </div>
 
-      {/* 📱 Mobile Sidebar Drawer */}
       <Dialog open={sidebarOpen} onClose={() => setSidebarOpen(false)} className="relative z-50 lg:hidden">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-y-0 left-0 w-1/2 max-w-xs bg-white p-6 overflow-y-auto">
@@ -151,7 +155,6 @@ const [selected, setSelected] = useState(initialSpeciality);
   );
 }
 
-// 🧱 Filter component
 function SidebarFilter({ selected, setSelected, specialities }) {
   return (
     <div className="flex flex-col gap-2">
